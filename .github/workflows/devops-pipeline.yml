@@ -1,0 +1,37 @@
+name: CI/CD for Hello DevOps
+
+on:
+  push:
+    branches: [ "main" ] # Kích hoạt pipeline khi push vào branch main
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Bước quan trọng cho dân Security: Build để quét trước
+      - name: Build Docker image for scanning
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/hello-devops:test .
+
+      # Tích hợp quét lỗ hổng với Trivy
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/hello-devops:test'
+          format: 'table'
+          exit-code: '0' # Để 0 để pipeline không dừng, chọn 1 nếu muốn dừng pipeline khi có lỗi bảo mật
+          severity: 'CRITICAL,HIGH'
+
+      - name: Build and Push official image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/hello-devops:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/hello-devops:latest
