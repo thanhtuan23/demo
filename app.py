@@ -16,7 +16,7 @@ def hello():
     count = redis.incr('hits')
     # Hiển thị IP thực tế của Client để kiểm tra
     client_ip = request.remote_addr 
-    return f"<h1>Hello DevOps!</h1><p>Your IP: {client_ip}</p><p>Hits: {count}</p>"
+    return f"<h1>Hello DevOps!!!!</h1><p>Your IP: {client_ip}</p><p>Hits: {count}</p>"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080)
